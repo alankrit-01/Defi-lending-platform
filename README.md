@@ -1,15 +1,18 @@
-# Basic Sample Hardhat Project
+# Defi-lending-platform
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+## ABOUT
+Defi lending and borrowing platorm where, 
+- Lender can deposit ethers
+- Lender can withdraw ethers partially (maximum, his principal amount)
+- Lender can withdarw all of his ethers (principal + Interest)
+- Borrower can send Dai token as collateral can can redeem 60% of it as loan (as ethers)
+- Borrower will get his collateral back (as Dai) with he pay his loan amount +interest back (in ethers)
+- Lending and borrowing interest rates are fixed per block
 
-Try running some of the following tasks:
+## HOW TO RUN 
+> npx hardhat node --fork https://speedy-nodes-nyc.moralis.io/3b50a8f528f7397fd9f310cf/eth/mainnet<br>
+> npx hardhat run ./scripts/script.js 
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+## UNCOMPLETE 
+- Will code a function to liquidate collateral if borrower is unable to replay loan
+
