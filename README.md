@@ -1,4 +1,4 @@
-# Basic Sample Hardhat Project
+# Defi-lending-platform
 
 ## ABOUT
 Defi lending and borrowing platorm where, 
