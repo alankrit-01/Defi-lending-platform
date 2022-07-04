@@ -15,14 +15,14 @@ interface Daitoken {
 }
 contract Defi {
     
-    // AggregatorV3Interface internal priceFeed;  
+    // AggregatorV3Interface internal priceFeed;
     using SafeERC20 for IERC20;
     address public uniRouterAddress =0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
-    address[] public daiToWethPath =[0x6B175474E89094C44Da98b954EedeAC495271d0F,0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2];
-    address[] public wethToDaiPath =[0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,0x6B175474E89094C44Da98b954EedeAC495271d0F];
+    address[] public daiToWethPath =[0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa,0xc778417E063141139Fce010982780140Aa0cD5Ab];
+    address[] public wethToDaiPath =[0xc778417E063141139Fce010982780140Aa0cD5Ab,0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa];
     uint256 public lendingInterestRatePerBlock = 1; // Fixed lending interest rate per block
     uint256 public borrowingInterestRatePerBlock = 2;  // Fixed borrowing interest rate per block
-    uint256 public collateralFactor =60;  // How much percent of the asset can be used as collateral (overcollateralized loans) 
+    uint256 public collateralFactor =60;  // How much percent of the asset can be used as collateral (overcollateralized loan) 
     Daitoken public daitoken;
     fallback() external payable{}
     receive() external payable{}
@@ -41,7 +41,7 @@ contract Defi {
     mapping(address =>depositor) public depositorInfo;
     event data(uint _data);
     constructor() payable {
-        daitoken= Daitoken(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        daitoken= Daitoken(0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa);
         // priceFeed = AggregatorV3Interface(0x773616E4d11A78F511299002da57A0a94577F1f4); // ETH-DAI
     }
     // function getLatestPrice() public view returns (int) {
@@ -54,11 +54,11 @@ contract Defi {
     function viewPendingInterestLender(address _lender) public view returns(uint256 accInterest){
         uint blocknumber=block.number;
         uint accInterestRateTotal= lendingInterestRatePerBlock*(blocknumber-lenderInfo[_lender].blockNumberLast);
-        accInterest =(lenderInfo[_lender].amount *accInterestRateTotal)/100;
-    }
+        accInterest =(lenderInfo[_lender].amount *accInterestRateTotal)/(10000);
+    } 
 
     function depositEthersLender() public payable {
-        require(msg.value>0,"PLEASE CALL THIS FUNCTION WITH SOME ETHERS");
+        require(msg.value>=10000,"PLEASE CALL THIS FUNCTION WITH ATLEAST 10000 WEI");
         uint blocknumber=block.number;
         if(lenderInfo[msg.sender].blockNumberLast==0 || lenderInfo[msg.sender].blockNumberLast ==blocknumber){
             lenderInfo[msg.sender].amount +=msg.value;
@@ -88,9 +88,10 @@ contract Defi {
         return;
     }
  
-    function withdrawEtherLenderAll() public{
+    function withdrawEtherLenderAll() public returns(uint){
         uint accInterest =viewPendingInterestLender(msg.sender);
-        uint totalAmount =lenderInfo[msg.sender].amount +lenderInfo[msg.sender].accInterest +accInterest;
+        lenderInfo[msg.sender].accInterest+=accInterest;
+        uint totalAmount =lenderInfo[msg.sender].amount +lenderInfo[msg.sender].accInterest;
         require(totalAmount>0);
         require(totalBalance() >=totalAmount,"CAN NOT WITHDRAW MORE THAN THIS CONTRACT HAS");
         (bool success, ) =(msg.sender).call{value: totalAmount}("");
@@ -98,7 +99,7 @@ contract Defi {
         lenderInfo[msg.sender].amount =0;
         lenderInfo[msg.sender].accInterest =0;
         lenderInfo[msg.sender].blockNumberLast=0;
-        return;
+        return totalAmount;
     }
 
     // BORROWER FUNCTIONS
@@ -109,12 +110,13 @@ contract Defi {
         uint accInterestRateTotal= borrowingInterestRatePerBlock*(blocknumber-depositorInfo[_borrower].blockNumberLast);
         // uint accInterestRateTotal= borrowingInterestRatePerBlock*3;
         uint value =depositorInfo[msg.sender].loanInEth;
-        accInterest =(value *accInterestRateTotal)/(100);
+        accInterest =(value *accInterestRateTotal)/(10000);
         return accInterest;
-    }
+    }    
 
     // depositor can only use DAI as collateral for now
     function DepositCollateral(uint _amount) public{    
+        require(_amount>=10000,"MINIMUM COLLATERAL 10000");
         daitoken.transferFrom(msg.sender,address(this), _amount);
         // uint256[] memory amounts = IUniswapV2Router02(uniRouterAddress).getAmountsOut(_amount, daiToEthPath);
         // uint256 amountOutmin = amounts[amounts.length-1];
@@ -137,7 +139,7 @@ contract Defi {
     }   
 
     function takeloan() public returns(uint){
-        require(depositorInfo[msg.sender].loanTaken ==false,"CAN NOT TAKE MORE LOAN");
+        require(depositorInfo[msg.sender].loanTaken ==false,"YOU CAN NOT TAKE MORE LOAN");
         uint _value =maxLoan(msg.sender);
         require(_value>0, "VALUE < 0" );
         daitoken.approve(uniRouterAddress, _value);
@@ -153,7 +155,7 @@ contract Defi {
         uint userETHBalanceAfter =(msg.sender).balance;
 
         depositorInfo[msg.sender].loanTaken =true;
-        depositorInfo[msg.sender].blockNumberLast=block.timestamp;
+        depositorInfo[msg.sender].blockNumberLast=block.number;
         depositorInfo[msg.sender].loanInEth=(userETHBalanceAfter-userETHBalanceBefore);
         return _value;   
     }
@@ -161,11 +163,14 @@ contract Defi {
         uint amount =viewPendingInterestBorrower(msg.sender);
         uint loanInEth =depositorInfo[msg.sender].loanInEth;
         uint totalLoan =amount +loanInEth;
-        require(msg.value >=totalLoan,"PEASE PAY PRINICIPAL + INTEREST");
-        uint _value =msg.value-amount;
-        (bool success,)=uniRouterAddress.call{value: _value}(abi.encodeWithSignature("swapExactETHForTokens(uint256,address[],address,uint256)",0,wethToDaiPath,address(this),(block.timestamp +600)));
+        require(msg.value >=totalLoan,"PEASE PAY PRINICIPAL + INTEREST");    
+        (bool success,)=uniRouterAddress.call{value: loanInEth}(abi.encodeWithSignature("swapExactETHForTokens(uint256,address[],address,uint256)",0,wethToDaiPath,address(this),(block.timestamp +600)));
         require(success,"FAILED TO CALL");
-        daitoken.transfer(msg.sender,depositorInfo[msg.sender].collateralProvided);
+        daitoken.transfer(msg.sender,depositorInfo[msg.sender].collateralProvided); 
+        depositorInfo[msg.sender].collateralProvided =0;
+        depositorInfo[msg.sender].loanTaken =false;
+        depositorInfo[msg.sender].blockNumberLast=0;
+        depositorInfo[msg.sender].loanInEth=0;
     }
 
     function totalBalance() public view returns(uint){
