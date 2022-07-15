@@ -51,7 +51,7 @@ contract Defi {
 
     // LENDER FUNCTIONS
 
-    function viewPendingInterestLender(address _lender) public view returns(uint256 accInterest){ // returns interest
+    function viewPendingInterestLender(address _lender) public view returns(uint256 accInterest){ 
         uint blocknumber=block.number;
         uint accInterestRateTotal= lendingInterestRatePerBlock*(blocknumber-lenderInfo[_lender].blockNumberLast);
         accInterest =(lenderInfo[_lender].amount *accInterestRateTotal)/(10000);
