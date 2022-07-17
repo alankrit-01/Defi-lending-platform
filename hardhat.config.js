@@ -50,7 +50,7 @@ module.exports = {
     rinkeby: {
       url: "https://eth-rinkeby.alchemyapi.io/v2/ZCXIt2280CuFKqVMuAp2L9-tDEuccVc1", //Infura url with projectId
       accounts: [
-        "a3e8480b3dbaba4812786c7ec82c47b6a1a4bf50f22e93fa2d6ec8c99aa5d228",
+        "bb8c9a8a62326ad56f3eae8195c2832493a610b36270f1eeffd421ea07ab1c9b",
       ], // add the account that will deploy the contract (private key)
       gas: 2100000,
       gasPrice: 8000000000,

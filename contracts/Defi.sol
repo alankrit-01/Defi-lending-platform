@@ -117,7 +117,7 @@ contract Defi {
     // depositor can only use DAI as collateral for now
     function DepositCollateral(uint _amount) public{    
         require(_amount>=10000,"MINIMUM COLLATERAL 10000");
-        daitoken.transferFrom(msg.sender,address(this), _amount);
+        daitoken.transferFrom(msg.sender,address(this), _amount);  // before calling collateral, user approve
         // uint256[] memory amounts = IUniswapV2Router02(uniRouterAddress).getAmountsOut(_amount, daiToEthPath);
         // uint256 amountOutmin = amounts[amounts.length-1];
         // daitoken.approve(uniRouterAddress, _amount);

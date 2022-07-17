@@ -6,6 +6,8 @@ import {
   Button,
   AppBar,
   Paper,
+  TextField,
+  IconButton,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import MarketPlace from "./components/MarketPlace";
@@ -13,19 +15,39 @@ import Web3 from "web3";
 import detectEthereumProvider from "@metamask/detect-provider";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import DefiJSON from "./artifacts/contracts/Defi.sol/Defi.json";
 var Contract = require("web3-eth-contract");
 
 function App() {
-  const address = "0x902E689A6313c00da807B7493aa25aa6917bDC2B";
-  const [balance, setBalance] = useState(null);
+  const address = "0xdC1094B1f37A9c23d9a09caC3cD11AAa1406d2F9"; // smart contract address
+
+  const [lender, setLender] = useState({
+    lenderDepositAmount: "",
+    lenderWithDrawAmount: "",
+  });
+
+  const [borrower, setBorrower] = useState({
+    borrowerRepayAmount: "",
+    borrowerLoanAmount: "",
+  });
+
+  const [balance, setBalance] = useState({
+    smartBalance: null,
+    accountBalance: null,
+  });
+
   const [web3Api, setWeb3Api] = useState({
     provider: null,
     web3: null,
     contract: null,
     isProviderLoaded: false,
   });
+
   const [account, setAccount] = useState(null);
+
+
+
   useEffect(() => {
     const loadProvider = async () => {
       const provider = await detectEthereumProvider();
@@ -46,25 +68,54 @@ function App() {
     loadProvider();
   }, []);
 
-  const { web3, isProviderLoaded, contract, provider } = web3Api;
+  const { web3, contract } = web3Api;
 
   useEffect(() => {
     const loadAccount = async () => {
-      const accounts = await web3Api.web3.eth.getAccounts();
+      const accounts = await web3.eth.getAccounts();
       setAccount(accounts[0]);
     };
-    web3Api.web3  && loadAccount();
-  }, [web3Api.web3]);
+    web3 && loadAccount();
+  }, [web3]);
 
   useEffect(() => {
     const loadBalance = async () => {
       const balance = await web3Api.web3.eth.getBalance(account);
-      setBalance(web3Api.web3.utils.fromWei(balance, "ether"));
+      const sc = await web3Api.web3.eth.getBalance(address);
+      setBalance({
+        accountBalance: web3Api.web3.utils.fromWei(balance, "ether"),
+        smartBalance: web3Api.web3.utils.fromWei(sc, "ether"),
+      });
     };
     account && loadBalance();
   }, [account]);
 
-  console.log(contract)
+  const depositEther = async () => {
+    // console.log(lender.lenderDepositAmount);
+     await  contract.methods.depositEthersLender({value :"200000000"})
+    
+    //  console.log(contract , account)
+    //  console.log((await contract.methods.lenderInfo(account)._method.outputs[0]))
+  };
+
+  const withDrawEther = async () => {
+    console.log(lender.lenderWithDrawAmount);
+    //   await contract.withdrawEtherLender("100") //1 Ethers
+    //   console.log((await contract.lenderInfo(myAccount.address)))
+  };
+  
+  const withDrawEtherAll = async () => {
+  //   await contract.withdrawEtherLenderAll() 
+//   console.log((await contract.lenderInfo(myAccount.address))) 
+  };
+
+  const repayLoan = async () => {
+    console.log("Repay Loan!");
+  };
+
+  const takeLoan = async () => {
+    console.log(borrower.borrowerLoanAmount);
+  };
 
   return (
     <div>
@@ -82,9 +133,10 @@ function App() {
               <h1>Welcome</h1>
             ) : (
               <Button
-                onClick={() =>
-                  web3Api.provider.request({ method: "eth_requestAccounts" })
-                }
+                onClick={() => {
+                  web3Api.provider.request({ method: "eth_requestAccounts" });
+                  window.location.reload();
+                }}
                 color="inherit"
                 sx={{ fontFamily: "'Lato', sans-serif" }}
               >
@@ -96,7 +148,7 @@ function App() {
       </Box>
       <Grid container spacing={3} sx={{ marginTop: "2px" }}>
         <Grid item xs={12} md={8}>
-          <MarketPlace />
+          <MarketPlace sc={balance.smartBalance} />
         </Grid>
         <Grid item xs={12} md={4}>
           <Paper
@@ -134,7 +186,7 @@ function App() {
                   }}
                   variant="h5"
                 >
-                  My Balance : {balance}
+                  My Balance : {balance.accountBalance}
                 </Typography>
                 <Typography
                   align="center"
@@ -173,7 +225,7 @@ function App() {
               marginLeft: "2%",
               backgroundColor: "#757ce8",
               justifyItems: "center",
-              height: "200px",
+              height: "330px",
               position: "relative",
             }}
           >
@@ -195,7 +247,7 @@ function App() {
                   sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
                   variant="h6"
                 >
-                  Deposit Amount: 100
+                  Deposit Amount: {(contract.lenderInfo(account)).amount.toString()}
                 </Typography>
               </div>
               <div>
@@ -204,6 +256,12 @@ function App() {
                   variant="h6"
                 >
                   Interest Earned: 100
+                  <IconButton
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => console.log("Refresh")}
+                  >
+                    <RefreshIcon />
+                  </IconButton>
                 </Typography>
               </div>
               <div>
@@ -214,20 +272,67 @@ function App() {
                   Total Amount: 100
                 </Typography>
               </div>
-              <Box sx={{ display: "flex", marginTop: "2%" }}>
-                <Button
-                  variant="contained"
-                  startIcon={<ArrowUpwardIcon />}
-                  sx={{ color: "white" }}
-                >
-                  Add Funds
-                </Button>
+              <Box
+                sx={{
+                  display: "flex",
+                  marginTop: "2%",
+                  justifyContent: "column",
+                }}
+              >
+                <Box>
+                  <TextField
+                    value={lender.lenderDepositAmount}
+                    sx={{ color: "white !important" }}
+                    type="number"
+                    onChange={(e) =>
+                      setLender((api) => ({
+                        ...api,
+                        lenderDepositAmount: e.target.value,
+                      }))
+                    }
+                    label="Add Funds"
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<ArrowUpwardIcon />}
+                    sx={{ color: "white", marginTop: "4%" }}
+                    onClick={depositEther}
+                  >
+                    Add Funds
+                  </Button>
+                </Box>
+                <Box>
+                  <TextField
+                    onChange={(e) =>
+                      setLender((api) => ({
+                        ...api,
+                        lenderWithDrawAmount: e.target.value,
+                      }))
+                    }
+                    sx={{ color: "white" }}
+                    type="number"
+                    label="Withdraw Funds"
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<ArrowDownwardIcon />}
+                    sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
+                    onClick={withDrawEther}
+                  >
+                    Withdraw
+                  </Button>
+                </Box>
+              </Box>
+              <Box>
                 <Button
                   variant="contained"
                   startIcon={<ArrowDownwardIcon />}
-                  sx={{ color: "white", marginLeft: "2%" }}
+                  sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
+                  onClick={withDrawEtherAll}
                 >
-                  Withdraw
+                  Withdraw All Ethers
                 </Button>
               </Box>
             </Box>
@@ -240,7 +345,7 @@ function App() {
               marginLeft: "2%",
               backgroundColor: "#757ce8",
               justifyItems: "center",
-              height: "200px",
+              height: "300px",
               position: "relative",
             }}
           >
@@ -271,6 +376,12 @@ function App() {
                   variant="h6"
                 >
                   Interest Amount: 100
+                  <IconButton
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => console.log("Refresh")}
+                  >
+                    <RefreshIcon />
+                  </IconButton>
                 </Typography>
               </div>
               <div>
@@ -281,21 +392,52 @@ function App() {
                   Total Amount: 100
                 </Typography>
               </div>
-              <Box sx={{ display: "flex", marginTop: "2%" }}>
-                <Button
-                  variant="contained"
-                  startIcon={<ArrowUpwardIcon />}
-                  sx={{ color: "white" }}
-                >
-                  Add Funds
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={<ArrowDownwardIcon />}
-                  sx={{ color: "white", marginLeft: "2%" }}
-                >
-                  Withdraw
-                </Button>
+              <Box
+                sx={{
+                  display: "flex",
+                  marginTop: "2%",
+                  justifyContent: "column",
+                }}
+              >
+                <Box>
+                  <TextField
+                    value={borrower.borrowerRepayAmount}
+                    sx={{ color: "white !important" }}
+                    type="number"
+                    label="Repay Funds"
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<ArrowUpwardIcon />}
+                    sx={{ color: "white", marginTop: "4%" }}
+                    onClick={repayLoan}
+                  >
+                    Repay
+                  </Button>
+                </Box>
+                <Box>
+                  <TextField
+                    onChange={(e) =>
+                      setBorrower((api) => ({
+                        ...api,
+                        borrowerLoanAmount: e.target.value,
+                      }))
+                    }
+                    sx={{ color: "white" }}
+                    type="number"
+                    label="Borrow Funds"
+                    variant="outlined"
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<ArrowDownwardIcon />}
+                    sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
+                    onClick={takeLoan}
+                  >
+                    Borrow
+                  </Button>
+                </Box>
               </Box>
             </Box>
           </Paper>
