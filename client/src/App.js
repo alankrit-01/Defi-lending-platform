@@ -1,3 +1,4 @@
+
 import {
   Grid,
   Typography,
@@ -26,6 +27,11 @@ function App() {
     lenderDepositAmount: "",
     lenderWithDrawAmount: "",
   });
+
+  const [lenderInfo , setLenderInfo] = useState({
+    depositAmount:0,
+    accInterestAmount:0
+  })
 
   const [borrower, setBorrower] = useState({
     borrowerRepayAmount: "",
@@ -91,22 +97,24 @@ function App() {
   }, [account]);
 
   const depositEther = async () => {
-    // console.log(lender.lenderDepositAmount);
-     await  contract.methods.depositEthersLender({value :"200000000"})
-    
-    //  console.log(contract , account)
-    //  console.log((await contract.methods.lenderInfo(account)._method.outputs[0]))
+     await contract.methods.depositEthersLender().send({value : lender.lenderDepositAmount , from:account});
+     window.location.reload();
   };
 
   const withDrawEther = async () => {
-    console.log(lender.lenderWithDrawAmount);
-    //   await contract.withdrawEtherLender("100") //1 Ethers
-    //   console.log((await contract.lenderInfo(myAccount.address)))
+        const bn = new web3.utils.BN(lender.lenderWithDrawAmount)
+
+    await contract.methods.withdrawEtherLender(bn).send({ from:account}); //1 Ethers
+
+    // const bn = new web3.utils.isBigNumber(lender.lenderWithDrawAmount)
+    // await contract.methods.withdrawEtherLender({amount : bn }).send();
   };
   
   const withDrawEtherAll = async () => {
-  //   await contract.withdrawEtherLenderAll() 
-//   console.log((await contract.lenderInfo(myAccount.address))) 
+    const response = await contract.methods.withdrawEtherLenderAll().call().then((res) =>  {
+      return res;
+    })
+    return response;
   };
 
   const repayLoan = async () => {
@@ -116,6 +124,16 @@ function App() {
   const takeLoan = async () => {
     console.log(borrower.borrowerLoanAmount);
   };
+
+  const viewPendingInterest = async () => {
+    const accInterestAmount = await contract.methods.viewPendingInterestLender(account).call();
+    setLenderInfo((api) => ({...api,accInterestAmount}))
+  }
+ 
+  const updateDepositLender = async () => {
+    const lenderInfo = await contract.methods.lenderInfo(account).call()
+    setLenderInfo(api => ({...api,depositAmount:lenderInfo.amount}))
+  }
 
   return (
     <div>
@@ -243,11 +261,16 @@ function App() {
                 </Typography>
               </div>
               <div>
-                <Typography
+              <Typography
                   sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
                   variant="h6"
                 >
-                  Deposit Amount: {(contract.lenderInfo(account)).amount.toString()}
+                  Desposit-Amount : {lenderInfo.depositAmount} WEI
+                  <IconButton
+                    sx={{ cursor: "pointer" }}
+                    onClick={updateDepositLender}
+                  > <RefreshIcon />
+                  </IconButton>
                 </Typography>
               </div>
               <div>
@@ -255,12 +278,11 @@ function App() {
                   sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
                   variant="h6"
                 >
-                  Interest Earned: 100
+                  View Interest Earned : {lenderInfo.accInterestAmount} WEI
                   <IconButton
                     sx={{ cursor: "pointer" }}
-                    onClick={() => console.log("Refresh")}
-                  >
-                    <RefreshIcon />
+                    onClick={viewPendingInterest}
+                  > <RefreshIcon />
                   </IconButton>
                 </Typography>
               </div>
