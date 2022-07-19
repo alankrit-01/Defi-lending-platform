@@ -33,9 +33,13 @@ function App() {
     accInterestAmount:0
   })
 
+  const [borrowerInfo , setBorrowerInfo] = useState({
+    borrowedAmount:0,
+    totalRepayAmount:0
+  })
+
   const [borrower, setBorrower] = useState({
-    borrowerRepayAmount: "",
-    borrowerLoanAmount: "",
+    borrowerDaiAmount: 0,
   });
 
   const [balance, setBalance] = useState({
@@ -118,12 +122,26 @@ function App() {
   };
 
   const repayLoan = async () => {
-    console.log("Repay Loan!");
+    // repay the total Loan
   };
 
-  const takeLoan = async () => {
-    console.log(borrower.borrowerLoanAmount);
+  const approveCollateral = async () => {
+    // here he will approve collateral.
   };
+
+  const updateBorrowed = async () => {
+      //  console.log(await defi.depositorInfo(myAccount.address));
+      const info = await contract.methods.depositorInfo(account).call()
+      setBorrowerInfo(api => ({...api, borrowedAmount:info.loanInEth}));
+  }
+
+  const updateTotal = async () => {
+      //  console.log(await defi.viewPendingInterestBorrower(myAccount.address));
+      // console.log(await defi.viewPendingInterestBorrower(myAccount.address));
+     const value = await contract.methods.viewPendingInterestBorrower(account).call();
+    //  console.log(value);
+     setBorrowerInfo(api => ({...api, totalRepayAmount:value}))
+  }
 
   const viewPendingInterest = async () => {
     const accInterestAmount = await contract.methods.viewPendingInterestLender(account).call();
@@ -385,11 +403,22 @@ function App() {
                 </Typography>
               </div>
               <div>
-                <Typography
+                {/* <Typography
                   sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
                   variant="h6"
                 >
                   Borrowed Amount: 100
+                </Typography> */}
+                <Typography
+                  sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
+                  variant="h6"
+                >
+                  Borrowed Amount : {borrowerInfo.borrowedAmount} WEI
+                  <IconButton
+                    sx={{ cursor: "pointer" }}
+                    onClick={updateBorrowed}
+                  > <RefreshIcon />
+                  </IconButton>
                 </Typography>
               </div>
               <div>
@@ -407,11 +436,16 @@ function App() {
                 </Typography>
               </div>
               <div>
-                <Typography
+              <Typography
                   sx={{ color: "white", fontFamily: "'Lato', sans-serif" }}
                   variant="h6"
                 >
-                  Total Amount: 100
+                  Total Repay Amount : {borrowerInfo.totalRepayAmount} WEI
+                  <IconButton
+                    sx={{ cursor: "pointer" }}
+                    onClick={updateTotal}
+                  > <RefreshIcon />
+                  </IconButton>
                 </Typography>
               </div>
               <Box
@@ -443,7 +477,7 @@ function App() {
                     onChange={(e) =>
                       setBorrower((api) => ({
                         ...api,
-                        borrowerLoanAmount: e.target.value,
+                        borrowerDaiAmount: e.target.value,
                       }))
                     }
                     sx={{ color: "white" }}
@@ -455,7 +489,7 @@ function App() {
                     variant="contained"
                     startIcon={<ArrowDownwardIcon />}
                     sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
-                    onClick={takeLoan}
+                    onClick={approveCollateral}
                   >
                     Borrow
                   </Button>
