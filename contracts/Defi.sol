@@ -163,7 +163,7 @@ contract Defi {
         uint amount =viewPendingInterestBorrower(msg.sender);
         uint loanInEth =depositorInfo[msg.sender].loanInEth;
         uint totalLoan =amount +loanInEth;
-        require(msg.value >=totalLoan,"PEASE PAY PRINICIPAL + INTEREST");    
+        require(msg.value >=totalLoan,"PLEASE PAY PRINICIPAL + INTEREST");    
         (bool success,)=uniRouterAddress.call{value: loanInEth}(abi.encodeWithSignature("swapExactETHForTokens(uint256,address[],address,uint256)",0,wethToDaiPath,address(this),(block.timestamp +600)));
         require(success,"FAILED TO CALL");
         daitoken.transfer(msg.sender,depositorInfo[msg.sender].collateralProvided); 

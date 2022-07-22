@@ -18,10 +18,12 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import DefiJSON from "./artifacts/contracts/Defi.sol/Defi.json";
+import DaiJSON from "./artifacts/contracts/DAI.sol/Dai.json"
 var Contract = require("web3-eth-contract");
 
 function App() {
   const address = "0xdC1094B1f37A9c23d9a09caC3cD11AAa1406d2F9"; // smart contract address
+  
 
   const [lender, setLender] = useState({
     lenderDepositAmount: "",
@@ -40,6 +42,7 @@ function App() {
 
   const [borrower, setBorrower] = useState({
     borrowerDaiAmount: 0,
+    borrowerCollateral:0
   });
 
   const [balance, setBalance] = useState({
@@ -55,7 +58,9 @@ function App() {
   });
 
   const [account, setAccount] = useState(null);
+  
 
+ 
 
 
   useEffect(() => {
@@ -63,12 +68,15 @@ function App() {
       const provider = await detectEthereumProvider();
       Contract.setProvider(provider);
       if (provider) {
-        var contract = new Contract(DefiJSON.abi, address);
+        const contract = new Contract(DefiJSON.abi, address);
+        const web3 = new Web3(provider);
+
         setWeb3Api({
           provider,
-          web3: new Web3(provider),
+          web3,
           isProviderLoaded: true,
           contract,
+        
         });
       } else {
         console.log("Connect to Metamask!");
@@ -100,10 +108,7 @@ function App() {
     account && loadBalance();
   }, [account]);
 
-  const depositEther = async () => {
-     await contract.methods.depositEthersLender().send({value : lender.lenderDepositAmount , from:account});
-     window.location.reload();
-  };
+
 
   const withDrawEther = async () => {
         const bn = new web3.utils.BN(lender.lenderWithDrawAmount)
@@ -120,38 +125,65 @@ function App() {
     })
     return response;
   };
-
+//  console.log(web3Api)
   const repayLoan = async () => {
     // repay the total Loan
   };
 
-  const approveCollateral = async () => {
+  const takeLoan = async () => {
+      //  await contract.methods.takeloan().call()
+       const response = await contract.methods.takeloan().call().then((res) =>  {
+        return res;
+      })
+      return response;
+  };
+
+  const depositEther = async () => {
+    await contract.methods.depositEthersLender().send({value : lender.lenderDepositAmount , from:account});
+    window.location.reload();
+ };
+
+  const approveDai = async () => {
+      // await Dai.approve( address,"10000000000000000000000"); 
+
+    // console.log(borrower.borrowerDaiAmount, "approve")
     // here he will approve collateral.
   };
 
-  const updateBorrowed = async () => {
+  const depositCollateral = async () => {
+      //  await defi.connect(newAccount).DepositCollateral("10000000000000000000000"); 
+      await contract.methods.DepositCollateral(borrower.borrowerCollateral).send({ from:account})
+      window.reload();
+    // console.log(Dai,"ninad")
+      // deposit collateral
+      // console.log(borrower.borrowerCollateral,"Deposit collateral")
+  }
+
+  const updateBorrowed = async () => {  // returns how much borrower has loan he has taken
       //  console.log(await defi.depositorInfo(myAccount.address));
       const info = await contract.methods.depositorInfo(account).call()
       setBorrowerInfo(api => ({...api, borrowedAmount:info.loanInEth}));
   }
 
-  const updateTotal = async () => {
+  const updateTotal = async () => {    // returns how much borrower has to pay interest + borrowed
       //  console.log(await defi.viewPendingInterestBorrower(myAccount.address));
-      // console.log(await defi.viewPendingInterestBorrower(myAccount.address));
-     const value = await contract.methods.viewPendingInterestBorrower(account).call();
+    //  const value = await contract.methods.depositorInfo(account).call();
     //  console.log(value);
-     setBorrowerInfo(api => ({...api, totalRepayAmount:value}))
+    //  setBorrowerInfo(api => ({...api, totalRepayAmount:value}))
   }
 
-  const viewPendingInterest = async () => {
+  const viewPendingInterest = async () => {   // returns how much interest lender will be getting.
     const accInterestAmount = await contract.methods.viewPendingInterestLender(account).call();
+  
     setLenderInfo((api) => ({...api,accInterestAmount}))
   }
  
-  const updateDepositLender = async () => {
+  const updateDepositLender = async () => {   // returns how much lender has deposited
     const lenderInfo = await contract.methods.lenderInfo(account).call()
     setLenderInfo(api => ({...api,depositAmount:lenderInfo.amount}))
   }
+
+
 
   return (
     <div>
@@ -258,10 +290,10 @@ function App() {
           <Paper
             elevation={3}
             sx={{
-              marginLeft: "2%",
+              margin: "2%",
               backgroundColor: "#757ce8",
               justifyItems: "center",
-              height: "330px",
+              height: "350px",
               position: "relative",
             }}
           >
@@ -382,10 +414,10 @@ function App() {
           <Paper
             elevation={3}
             sx={{
-              marginLeft: "2%",
+              margin: "2%",
               backgroundColor: "#757ce8",
               justifyItems: "center",
-              height: "300px",
+              height: "350px",
               position: "relative",
             }}
           >
@@ -457,10 +489,10 @@ function App() {
               >
                 <Box>
                   <TextField
-                    value={borrower.borrowerRepayAmount}
+                    value={borrowerInfo.totalRepayAmount}
                     sx={{ color: "white !important" }}
                     type="number"
-                    label="Repay Funds"
+                    label="Repay Loan"
                     variant="outlined"
                   />
                   <Button
@@ -482,19 +514,51 @@ function App() {
                     }
                     sx={{ color: "white" }}
                     type="number"
-                    label="Borrow Funds"
+                    label="Approve Dai"
                     variant="outlined"
+                    value={borrower.borrowerDaiAmount}
                   />
                   <Button
                     variant="contained"
-                    startIcon={<ArrowDownwardIcon />}
+                    startIcon={<ArrowUpwardIcon />}
                     sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
-                    onClick={approveCollateral}
+                    onClick={approveDai}
                   >
-                    Borrow
+                    Approve Dai
+                  </Button>
+                </Box>
+                <Box>
+                  <TextField
+                    onChange={(e) =>
+                      setBorrower((api) => ({
+                        ...api,
+                        borrowerCollateral: e.target.value,
+                      }))
+                    }
+                    sx={{ color: "white" }}
+                    type="number"
+                    label="Deposit Collateral"
+                    variant="outlined"
+                    value={borrower.borrowerCollateral}
+                  />
+                  <Button
+                    variant="contained"
+                    startIcon={<ArrowUpwardIcon />}
+                    sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
+                    onClick={depositCollateral}
+                  >
+                    Deposit Collateral
                   </Button>
                 </Box>
               </Box>
+              <Button
+                    variant="contained"
+                    startIcon={<ArrowDownwardIcon />}
+                    sx={{ color: "white", marginLeft: "2%", marginTop: "4%" }}
+                    onClick={takeLoan}
+                  >
+                    Take Loan
+                  </Button>
             </Box>
           </Paper>
         </Grid>
