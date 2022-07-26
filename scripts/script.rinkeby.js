@@ -6,18 +6,18 @@ async function main() {
   const [myAccount] =await ethers.getSigners();
   const provider = waffle.provider;
 
-  // const Defi = await ethers.getContractFactory("Defi");
-  // const defi = await Defi.deploy({value:"1000"});
-  // await defi.deployed();
-  // console.log("Defi deployed to:", defi.address);
+  const Defi = await ethers.getContractFactory("Defi");
+  const defi = await Defi.deploy({value:"100000"});
+  await defi.deployed();
+  console.log("Defi deployed to:", defi.address);
 
-  const defi = await ethers.getContractAt("Defi","0xC5F07557f2811eB6520Ba6fE76e76b20C15BA214");
+  // const defi = await ethers.getContractAt("Defi","0xC5F07557f2811eB6520Ba6fE76e76b20C15BA214");
   const Dai = await ethers.getContractAt("Dai","0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa");
 
   // console.log(await provider.getBalance(myAccount.address));
   // console.log(await provider.getBalance(defi.address));
   // console.log(await Dai.balanceOf(myAccount.address));  // 585097 007794 9377202721505
-  // await Dai.transfer(defi.address, "1077949377202721505");  // 585097 0077949377202721505
+  await Dai.transfer(defi.address, "1077949377202721505");  // 585097 0077949377202721505
   // console.log(await Dai.balanceOf(defi.address));  // 585097 007794 9377202721505
 
   //----------------- LENDING FUNCTIONS ---------------

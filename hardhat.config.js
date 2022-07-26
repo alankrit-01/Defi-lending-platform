@@ -36,9 +36,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   networks:{
     hardhat: {
       chainId: 31337,
-      localhost: {
-        url: "http://127.0.0.1:8545"
-      },
       forking: {
         url: "https://speedy-nodes-nyc.moralis.io/3b50a8f528f7397fd9f310cf/eth/mainnet", 
         blockNumber:15070101
@@ -52,7 +49,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
       accounts: ["28c80c76dc8dbfb442d93503d7583f645d96881346129be7ef74c01a8ad13378"], // add the account that will deploy the contract (private key)
       gas: 2100000,
       gasPrice: 8000000000
-    }
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545"
+    },
   }
 
 }
