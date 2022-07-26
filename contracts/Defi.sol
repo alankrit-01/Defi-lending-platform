@@ -52,7 +52,7 @@ contract Defi {
 
     // LENDER FUNCTIONS
 
-    function viewPendingInterestLender(address _lender) public view returns(uint256 accInterest){
+    function viewPendingInterestLender(address _lender) public view returns(uint256 accInterest){ 
         uint blocknumber=block.number;
         uint accInterestRateTotal= lendingInterestRatePerBlock*(blocknumber-lenderInfo[_lender].blockNumberLast);
         accInterest =(lenderInfo[_lender].amount *accInterestRateTotal)/(10000);
@@ -118,7 +118,7 @@ contract Defi {
     // depositor can only use DAI as collateral for now
     function DepositCollateral(uint _amount) public{    
         require(_amount>=10000,"MINIMUM COLLATERAL 10000");
-        daitoken.transferFrom(msg.sender,address(this), _amount);
+        daitoken.transferFrom(msg.sender,address(this), _amount);  // before calling collateral, user approve
         // uint256[] memory amounts = IUniswapV2Router02(uniRouterAddress).getAmountsOut(_amount, daiToEthPath);
         // uint256 amountOutmin = amounts[amounts.length-1];
         // daitoken.approve(uniRouterAddress, _amount);
@@ -164,7 +164,7 @@ contract Defi {
         uint amount =viewPendingInterestBorrower(msg.sender);
         uint loanInEth =depositorInfo[msg.sender].loanInEth;
         uint totalLoan =amount +loanInEth;
-        require(msg.value >=totalLoan,"PEASE PAY PRINICIPAL + INTEREST");    
+        require(msg.value >=totalLoan,"PLEASE PAY PRINICIPAL + INTEREST");    
         (bool success,)=uniRouterAddress.call{value: loanInEth}(abi.encodeWithSignature("swapExactETHForTokens(uint256,address[],address,uint256)",0,wethToDaiPath,address(this),(block.timestamp +600)));
         require(success,"FAILED TO CALL");
         daitoken.transfer(msg.sender,depositorInfo[msg.sender].collateralProvided); 

@@ -16,38 +16,47 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
- module.exports = {
-  solidity:     {
-  compilers: [
+module.exports = {
+  solidity: {
+    compilers: [
       {
-        version: "0.8.0"
+        version: "0.8.0",
       },
       {
-        version: "0.5.12"
+        version: "0.5.12",
       },
       {
-        version: "0.6.12"
+        version: "0.6.12",
       },
       {
-        version: "0.4.17"
-      }
-    ] 
+        version: "0.4.17",
+      },
+    ],
   },
-  networks:{
+  networks: {
     hardhat: {
       chainId: 31337,
-      forking: {
-        url: "https://speedy-nodes-nyc.moralis.io/3b50a8f528f7397fd9f310cf/eth/mainnet", 
-        blockNumber:15070101
+<<<<<<< HEAD
+=======
+      localhost: {
+        url: "http://127.0.0.1:8545",
       },
-      paths:{
-        artifacts: './react-admin/src/artifacts',
-      }
+>>>>>>> 061eed8d3bae13479f609e4da41bfdba685fed7f
+      forking: {
+        url: "https://eth-rinkeby.alchemyapi.io/v2/ZCXIt2280CuFKqVMuAp2L9-tDEuccVc1",
+        blockNumber: 11029412,
+      },
+      paths: {
+        artifacts: "./client/src/artifacts",
+      },
     },
     rinkeby: {
-      url: "https://speedy-nodes-nyc.moralis.io/3b50a8f528f7397fd9f310cf/eth/rinkeby", //Infura url with projectId
-      accounts: ["28c80c76dc8dbfb442d93503d7583f645d96881346129be7ef74c01a8ad13378"], // add the account that will deploy the contract (private key)
+      url: "https://eth-rinkeby.alchemyapi.io/v2/ZCXIt2280CuFKqVMuAp2L9-tDEuccVc1", //Infura url with projectId
+      accounts: [
+        "bb8c9a8a62326ad56f3eae8195c2832493a610b36270f1eeffd421ea07ab1c9b","41a47ffef18eae77297a723f3b47b11f01c281f4da6654d837cd1f7f3170a9a2"
+      ], // add the account that will deploy the contract (private key)
       gas: 2100000,
+<<<<<<< HEAD
       gasPrice: 8000000000
     },
     localhost: {
@@ -56,6 +65,13 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 
 }
+=======
+      gasPrice: 8000000000,
+    },
+  },
+};
+>>>>>>> 061eed8d3bae13479f609e4da41bfdba685fed7f
 
 // npx hardhat node --fork https://speedy-nodes-nyc.moralis.io/3b50a8f528f7397fd9f310cf/eth/mainnet
 // npx hardhat run ./scripts/script.js
+// 0xB67ce5EdbC95913b18a229485f7A1bc9F727A9d0 => Deployed address
