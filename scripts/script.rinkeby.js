@@ -11,7 +11,6 @@ async function main() {
   await defi.deployed();
   console.log("Defi deployed to:", defi.address);
 
-<<<<<<< HEAD
   // const defi = await ethers.getContractAt("Defi","0xC5F07557f2811eB6520Ba6fE76e76b20C15BA214");
   const Dai = await ethers.getContractAt("Dai","0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa");
 
@@ -19,16 +18,6 @@ async function main() {
   // console.log(await provider.getBalance(defi.address));
   // console.log(await Dai.balanceOf(myAccount.address));  // 585097 007794 9377202721505
   await Dai.transfer(defi.address, "1077949377202721505");  // 585097 0077949377202721505
-=======
-  const defi = await ethers.getContractAt("Defi","0xdC1094B1f37A9c23d9a09caC3cD11AAa1406d2F9");
-  const Dai = await ethers.getContractAt("Dai","0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa");  //rinkeby official DAI
-  // console.log(Dai)
-  // console.log(myAccount.address)
-  // console.log(await provider.getBalance(myAccount.address));
-  // console.log(await provider.getBalance(defi.address));
-  // console.log(await Dai.balanceOf(newAccount.address));  // 528045.610521629632484982
-  // await Dai.transfer(defi.address, "1077949377202721505");  // 585097 0077949377202721505
->>>>>>> 061eed8d3bae13479f609e4da41bfdba685fed7f
   // console.log(await Dai.balanceOf(defi.address));  // 585097 007794 9377202721505
 
   //----------------- LENDING FUNCTIONS ---------------
